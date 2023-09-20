@@ -34,7 +34,7 @@ AppPottsGSH::AppPottsGSH(SPPARKS* spk, int narg, char** arg) : AppPotts(spk, nar
     delpropensity = 1;
     delevent = 0;
 
-    allow_kmc = 1;
+    allow_kmc = 0;
     allow_rejection = 1;
     allow_masking = 1;
     numrandom = 1;
@@ -128,32 +128,9 @@ double AppPottsGSH::site_energy(int i) {
     int nei;
     for (int j = 0; j < numneigh[i]; j++) {
         nei = neighbor[i][j];
-
         gsh_jsite = spin2gsh[spin[nei]];
-
-        // std::cout << i << ": ";
-        // for (int k = 0; k < 10; ++k) {
-        //     std::cout << gsh_isite[k] << " ";
-        // }
-        // std::cout << std::endl;
-
-        // std::cout << neighbor[i][j] << ": ";
-        // for (int k = 0; k < 10; ++k) {
-        //     std::cout << gsh_jsite[k] << " ";
-        // }
-        // std::cout << std::endl;
-
-        // exit(0);
-
         eng += euclideanDistance(gsh_isite, gsh_jsite, n_gsh_coef);
     }
-
-    // if (eng == 0) {
-    //     std::cout << "energy: " << eng << std::endl;
-    //     exit(0);
-    // }
-
-    // exit(0);
 
     return eng;
 }
@@ -177,10 +154,6 @@ void AppPottsGSH::site_event_rejection(int i, RandomPark* random) {
 
     // get new energy
     double efinal = site_energy(i);
-
-    // std::cout << "initial energy: " << einitial << std::endl;
-    // std::cout << "new energy: " << efinal << std::endl;
-    // exit(0);
 
     // accept or reject via Boltzmann criterion
     // null bin extends to nspins
@@ -249,62 +222,6 @@ double AppPottsGSH::site_propensity(int i) {
 
     spin[i] = oldstate;
     return prob;
-}
-
-/* ----------------------------------------------------------------------
-   KMC method
-   choose and perform an event for site
-------------------------------------------------------------------------- */
-
-void AppPottsGSH::site_event(int i, RandomPark* random) {
-    int j, m, value;
-
-    // pick one event from total propensity by accumulating its probability
-    // compare prob to threshhold, break when reach it to select event
-    // perform event
-
-    double threshhold = random->uniform() * propensity[i2site[i]];
-    double efinal;
-
-    int oldstate = spin[i];
-    double einitial = site_energy(i);
-    double prob = 0.0;
-    int nevent = 0;
-
-    for (j = 0; j < numneigh[i]; j++) {
-        value = spin[neighbor[i][j]];
-        if (value == oldstate) continue;
-        for (m = 0; m < nevent; m++)
-            if (value == unique[m]) break;
-        if (m < nevent) continue;
-        unique[nevent++] = value;
-
-        spin[i] = value;
-        efinal = site_energy(i);
-        if (efinal <= einitial)
-            prob += 1.0;
-        else if (temperature > 0.0)
-            prob += exp((einitial - efinal) * t_inverse);
-        if (prob >= threshhold) break;
-    }
-
-    // compute propensity changes for self and neighbor sites
-    // ignore update of neighbor sites with isite < 0
-
-    int nsites = 0;
-    int isite = i2site[i];
-    sites[nsites++] = isite;
-    propensity[isite] = site_propensity(i);
-
-    for (j = 0; j < numneigh[i]; j++) {
-        m = neighbor[i][j];
-        isite = i2site[m];
-        if (isite < 0) continue;
-        sites[nsites++] = isite;
-        propensity[isite] = site_propensity(m);
-    }
-
-    solve->update(nsites, sites, propensity);
 }
 
 /*

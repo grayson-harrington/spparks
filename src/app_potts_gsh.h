@@ -41,7 +41,6 @@ namespace SPPARKS_NS {
         // wait to see if you will be modifying any of them
         virtual void site_event_rejection(int, class RandomPark *);
         virtual double site_propensity(int);
-        virtual void site_event(int, class RandomPark *);
 
     protected:
         int nspins;
