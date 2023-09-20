@@ -1,0 +1,57 @@
+# SPPARKS AppPottsRS tests on hexagonal symmetry
+
+#Seed for RN generator
+seed             56789
+
+log              example.log
+
+#nspins is same as in parent class
+#symm is a flag to assign symmetry
+## cubic = 24 (default) | hexagonal = 12
+## adding others should be straightforward
+#                           nspins     symm
+app_style        potts/rs   2097152    12
+
+dimension        3
+lattice          sc/26n 1.0
+region           box block 0 128 0 128 0 128
+
+create_box       box
+create_sites     box
+
+#spin pretty much the same: grain orientation ID
+#but now each spin is related to a set of Euler angles
+set              site unique
+#Euler angles: d1 = ph1, d2 = Phi and d3 = phi2
+set              d1   range 0 1
+set              d2   range 0 1
+set              d3   range 0 1
+
+#kMC sampling (sweeping) algorithm
+sweep            random
+sector           yes
+
+#app commands
+#cutoff for high/low angle GBs
+cutoff           20.0
+#Humpherys mobility
+#Mobility = M0 * [1 - exp(-scale * pow(thetar,expo))]
+mobility         expo 4
+mobility         scale 5
+#Potts Hamiltonian scaling factor J = n * sum(1-delta_ij)
+energy_scaling   1
+
+#Diagnostics
+diag_style       energy
+
+#PMC temperature, i.e. for Boltzmann statistics
+temperature      0.25
+
+#Output commands
+stats            1.0
+
+dump             1 text 1.0 potts_rs.*.dump id i1 d1 d2 d3 energy
+diag_style       cluster delt 1.0 stats no logfreq 9 10.0 filename cluster.dat
+
+run              10
+

@@ -1,0 +1,38 @@
+# SPPARKS Potts Read-Shockley w/ Continuous Grain Orientation
+
+#———————————————————————————————————————————————————————————————————
+
+seed		    56789
+app_style	    potts_gsh spin_to_angle_map.txt 
+
+#———————————————————————————————————————————————————————————————————
+# simulation cell definition
+#   3D --> sc/26n 1.0
+#   2D --> sq/8n 1.0   # moore neighborhood
+
+dimension	    2
+lattice		    sq/8n 1.0
+region		    box block 0 20 0 20 -0.5 0.5
+create_box	    box
+create_sites    box     # all site values are set to 0.0 initially
+                        # values read in from microstructure file are assigned in init_app
+                        # if no file given, random values assigned in init_app
+
+#———————————————————————————————————————————————————————————————————
+# rKMC sweep algorithm
+
+sweep		    random
+sector		    yes
+diag_style      energy
+
+#———————————————————————————————————————————————————————————————————
+# program output
+
+stats           1
+dump            dump1 text 1.0 potts_gsh.dump id x y z i1 energy
+
+#———————————————————————————————————————————————————————————————————
+
+run             50
+
+#———————————————————————————————————————————————————————————————————

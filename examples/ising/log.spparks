@@ -1,0 +1,54 @@
+SPPARKS (24 June 2021)
+# SPPARKS Ising tests on generic lattice
+
+seed		 56789
+
+app_style	 ising
+
+dimension	 2
+lattice		 sq/4n 1.0
+region		 box block 0 128 0 128 -0.5 0.5
+create_box	 box
+Created box = (0 0 -0.5) to (128 128 0.5)
+  1 by 2 by 1 processor grid
+create_sites	 box
+Creating sites ...
+  16384 sites
+  16384 sites have 4 neighbors
+set		 site range 1 2
+  16384 settings made for site
+
+sweep		 random
+sector		  yes
+
+diag_style       energy
+
+temperature	 -0.5
+
+stats            500
+dump             1 text 5.0 dump.ising
+
+run              5000
+Setting up run ...
+Running with 32-bit site IDs
+Memory usage per processor = 1.625 Mbytes
+      Time    Naccept    Nreject    Nsweeps        CPU     Energy
+         0          0          0          0          0      32600
+       500    8195190    8188810       1000       2.51      32784
+      1000   16389661   16378339       2000       4.77      32624
+      1500   24580651   24571349       3000       7.01      32696
+      2000   32768893   32767107       4000       8.99      33088
+      2500   40959866   40960134       5000       11.2      32900
+      3000   49150288   49153712       6000       14.7      32680
+      3500   57340712   57347288       7000       16.7      32804
+      4000   65531087   65540913       8000       18.8      33048
+      4500   73722039   73733961       9000       20.9      32864
+      5000   81915363   81924637      10000       23.3      32764
+Loop time of 23.3281 on 2 procs
+
+Solve time (%) = 6.50028 (27.8645)
+Update time (%) = 0 (0)
+Comm  time (%) = 4.47317 (19.175)
+Outpt time (%) = 12.3515 (52.9466)
+App   time (%) = 0 (0)
+Other time (%) = 0.00322545 (0.0138264)

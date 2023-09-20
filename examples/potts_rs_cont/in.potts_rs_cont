@@ -1,0 +1,52 @@
+# SPPARKS Potts Read-Shockley w/ Continuous Grain Orientation
+
+#———————————————————————————————————————————————————————————————————
+
+seed		    56789
+app_style	    potts_rs_cont
+
+#———————————————————————————————————————————————————————————————————
+# simulation cell definition
+#   3D --> sc/26n 1.0
+#   2D --> sq/8n 1.0   # moore neighborhood
+
+dimension	    2
+lattice		    sq/8n 1.0
+region		    box block 0 150 0 150 -0.5 0.5
+create_box	    box
+create_sites    box     # all site values are set to 0.0 initially, euler angles assigned in init_app
+
+#———————————————————————————————————————————————————————————————————
+# rKMC sweep algorithm
+
+sweep		    random
+sector		    yes
+diag_style      energy
+
+#———————————————————————————————————————————————————————————————————
+# Parameters specific to this AppPotts subclass
+
+kbT	            0.1     # boltzmann denominator
+theta_m         50 d    # misorientation angle cutoff
+humph_B         5       # scalar component in Humphrey's general mobility formulation
+humph_n         4       # exponent component in Humphrey's general mobility formulation
+
+#———————————————————————————————————————————————————————————————————
+# program output
+
+stats           25.0
+dump            dump1 text 1.0 potts_rs_cont.dump id x y z d1 d2 d3 d4 d5 d6 d7 energy
+
+                                                        # d1 --> phi1
+                                                        # d2 --> phi
+                                                        # d3 --> phi2
+                                                        # d4 --> quat_a
+                                                        # d5 --> quat_b
+                                                        # d6 --> quat_c
+                                                        # d7 --> quat_d
+
+#———————————————————————————————————————————————————————————————————
+
+run             1000
+
+#———————————————————————————————————————————————————————————————————
