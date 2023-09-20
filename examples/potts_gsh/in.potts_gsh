@@ -21,7 +21,7 @@ create_sites    box     # all site values are set to 0.0 initially
 #———————————————————————————————————————————————————————————————————
 # rKMC sweep algorithm
 
-sweep		    random
+sweep		    random mask yes
 sector		    yes
 diag_style      energy
 

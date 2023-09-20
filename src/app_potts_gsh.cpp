@@ -30,8 +30,10 @@ using namespace SPPARKS_NS;
 AppPottsGSH::AppPottsGSH(SPPARKS* spk, int narg, char** arg) : AppPotts(spk, narg, arg) {
     ninteger = 1;
     ndouble = 0;
+
     delpropensity = 1;
     delevent = 0;
+
     allow_kmc = 1;
     allow_rejection = 1;
     allow_masking = 1;
@@ -58,6 +60,7 @@ AppPottsGSH::AppPottsGSH(SPPARKS* spk, int narg, char** arg) : AppPotts(spk, nar
                               // when I make it smaller, the microstructure doesn't evolve the same
                               // I think this will most likely be in one of the AppPotts functions
                               // propensity, rejection, etc...
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -112,7 +115,7 @@ void AppPottsGSH::init_app() {
 ------------------------------------------------------------------------- */
 
 double AppPottsGSH::site_energy(int i) {
-    // TODO: here is where we want to use our custom distance function.
+    // here is where we will use our custom distance function.
 
     // instead of the traditional (1-delta(spin1, spin2))
     // we will use a distance function to represent energy
@@ -145,7 +148,10 @@ double AppPottsGSH::site_energy(int i) {
         eng += euclideanDistance(gsh_isite, gsh_jsite, n_gsh_coef);
     }
 
-    // std::cout << "energy: " << eng << std::endl;
+    // if (eng == 0) {
+    //     std::cout << "energy: " << eng << std::endl;
+    //     exit(0);
+    // }
 
     // exit(0);
 
@@ -192,14 +198,13 @@ void AppPottsGSH::site_event_rejection(int i, RandomPark* random) {
     // if site changed, unset mask of sites with affected propensity
     // OK to change mask of ghost sites since never used
 
-    // TODO: update this masking option. If we can mask, it will run faster.
-
-    // if (Lmask) {
-    //     if (einitial < 0.5 * numneigh[i]) mask[i] = 1;
-    //     if (spin[i] != oldstate)
-    //         for (int j = 0; j < numneigh[i]; j++)
-    //             mask[neighbor[i][j]] = 0;
-    // }
+    // update this masking option. If we can mask, it will run faster.
+    if (Lmask) {
+        if (einitial == 0) mask[i] = 1;
+        if (spin[i] != oldstate)
+            for (int j = 0; j < numneigh[i]; j++)
+                mask[neighbor[i][j]] = 0;
+    }
 }
 
 /* ----------------------------------------------------------------------
