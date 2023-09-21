@@ -33,7 +33,7 @@ namespace SPPARKS_NS {
         virtual ~AppPottsGSH();
         virtual void grow_app();
         virtual void init_app();
-        void input_app(char *, int, char **);
+        virtual void input_app(char *, int, char **);
 
         virtual double site_energy(int);
 
@@ -47,13 +47,26 @@ namespace SPPARKS_NS {
         int *spin;
         int *sites, *unique;
 
-        double **spin2euler;
-        double **spin2gsh;
-        int n_euler_angles;
-        int n_gsh_coef;
+        // spin maps 
+        int n_euler_angles, n_gsh_coef;
+        double **spin2euler, **spin2quat, **spin2gsh;
+    
+        // site energy functions and variables
+        //      type:
+        //          1 - spin count
+        //          2 - euler misorientation
+        //          3 - gsh distance
+        int site_energy_type; 
 
-        double gsh_dist_m;
-        const double gsh_distance_max = 15; // TODO: need to get this value. Will I even use this?
+        double site_energy_spin(int i);
+
+        double theta_m;
+        double read_shockley(const double theta);
+        double site_energy_read_shockley(int i);
+
+        double site_energy_gsh(int i);
+        
+        // HELPER FUNCTIONS
 
         // returns the maps (spin to euler, spin to gsh)
         SpinMaps read_spin2angle_map(const char *filePath, int &n_lines, int &n_eul, int &n_gsh);
@@ -61,12 +74,10 @@ namespace SPPARKS_NS {
         // euclidean distance between two double*
         double euclideanDistance(const double* array1, const double* array2, const int size);
 
-        //      Read-Shockley misorientation energy
-        //          calculate the misorientation energy based on
-        //          RS provided the gsh euclidean distance 
-        //              (proportional to the misorientation angle)
-        //      https://www.desmos.com/calculator/gleyqfqseq
-        double read_shockley(const double gsh_distance);
+        // convert euler angles into quaternion
+        void euler2quaternion(const double euler_in[3], double quat_out[4]);
+
+        double angle_between(const double quat1[4], const double quat2[4]);
         
     };
 }  // namespace SPPARKS_NS

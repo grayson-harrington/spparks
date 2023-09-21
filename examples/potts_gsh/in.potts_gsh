@@ -22,9 +22,13 @@ create_sites    box     # all site values are set to 0.0 initially
 #———————————————————————————————————————————————————————————————————
 # user defined values
 
-# https://www.desmos.com/calculator/gleyqfqseq
-# TODO: get a real value for this
-gsh_dist_m      10   # related to theta_m in Read-Shockley
+# choose energy model and give parameters
+# command type params
+#   type: 1 --> spin count,  2 --> misorientation energy,  3 --> gsh distance
+#       site_energy_type 1
+#       site_energy_type 2 d/r (degrees or radians)
+#       site_energy_type 3
+site_energy_type 3
 
 
 #———————————————————————————————————————————————————————————————————
