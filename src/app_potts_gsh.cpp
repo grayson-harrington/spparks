@@ -98,6 +98,7 @@ void AppPottsGSH::init_app() {
     unique = new int[1 + maxneigh];
 
     // Initialize the spins based on file inputs.
+    // TODO: This will eventually be EBSD data rather than random spins
     for (int i = 0; i < nlocal; i++) {
         spin[i] = rand() % nspins;
     }
@@ -111,6 +112,30 @@ void AppPottsGSH::init_app() {
 }
 
 /* ----------------------------------------------------------------------
+    user defined optional parameters
+ ------------------------------------------------------------------------- */
+void AppPottsGSH::input_app(char *command, int narg, char **arg) {
+    // high-angle cutoff for Read-Shockley mmisorientation calculations
+    if (strcmp(command, "gsh_dist_m") == 0) {
+        if (narg != 1) error->all(FLERR, "Illegal high-gsh-distance cutoff angle command\n");
+
+        gsh_dist_m = atof(arg[0]);
+
+        if (gsh_dist_m < 0) {
+            error->all(FLERR, "gsh_dist_m input must be positive\n");
+        } else if (gsh_dist_m > gsh_distance_max) {
+            error->all(FLERR, "gsh_dist_m must be between 0-gsh_distance_max\n");
+        }
+
+        if (logfile)
+            fprintf(logfile, "  gsh_dist_m set to %f\n", gsh_dist_m);
+        if (screen && me == 0)
+            fprintf(screen, "  gsh_dist_m set to %f\n", gsh_dist_m);
+    }
+}
+
+
+/* ----------------------------------------------------------------------
    compute energy of site
 ------------------------------------------------------------------------- */
 
@@ -120,16 +145,19 @@ double AppPottsGSH::site_energy(int i) {
     // instead of the traditional (1-delta(spin1, spin2))
     // we will use a distance function to represent energy
 
+    double gsh_dist;
     double eng = 0.0;
 
     double* gsh_isite = spin2gsh[spin[i]];
     double* gsh_jsite;
-
+    
     int nei;
     for (int j = 0; j < numneigh[i]; j++) {
         nei = neighbor[i][j];
         gsh_jsite = spin2gsh[spin[nei]];
-        eng += euclideanDistance(gsh_isite, gsh_jsite, n_gsh_coef);
+        gsh_dist = euclideanDistance(gsh_isite, gsh_jsite, n_gsh_coef);
+        eng += read_shockley(gsh_dist);
+        // eng += gsh_dist;
     }
 
     return eng;
@@ -273,7 +301,7 @@ SpinMaps AppPottsGSH::read_spin2angle_map(const char* filePath, int& n_lines, in
     return data;
 }
 
-double AppPottsGSH::euclideanDistance(const double* array1, const double* array2, int size) {
+double AppPottsGSH::euclideanDistance(const double* array1, const double* array2, const int size) {
     double sum = 0.0;
 
     for (int i = 0; i < size; ++i) {
@@ -282,4 +310,19 @@ double AppPottsGSH::euclideanDistance(const double* array1, const double* array2
     }
 
     return sqrt(sum);
+}
+
+double AppPottsGSH::read_shockley(const double gsh_distance) {
+    double energy = 0;
+
+    if (gsh_distance >= gsh_dist_m) {
+        energy = 1;
+    } else if (gsh_distance == 0) {
+        energy = 0;
+    } else {
+        double ratio = gsh_distance / gsh_dist_m;
+        energy = ratio * (1 - log(ratio));
+    }
+    
+    return energy;
 }

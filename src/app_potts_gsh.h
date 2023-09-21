@@ -33,7 +33,7 @@ namespace SPPARKS_NS {
         virtual ~AppPottsGSH();
         virtual void grow_app();
         virtual void init_app();
-        // void input_app(char *, int, char **);
+        void input_app(char *, int, char **);
 
         virtual double site_energy(int);
 
@@ -52,11 +52,21 @@ namespace SPPARKS_NS {
         int n_euler_angles;
         int n_gsh_coef;
 
+        double gsh_dist_m;
+        const double gsh_distance_max = 15; // TODO: need to get this value. Will I even use this?
+
         // returns the maps (spin to euler, spin to gsh)
         SpinMaps read_spin2angle_map(const char *filePath, int &n_lines, int &n_eul, int &n_gsh);
 
         // euclidean distance between two double*
-        double euclideanDistance(const double* array1, const double* array2, int size);
+        double euclideanDistance(const double* array1, const double* array2, const int size);
+
+        //      Read-Shockley misorientation energy
+        //          calculate the misorientation energy based on
+        //          RS provided the gsh euclidean distance 
+        //              (proportional to the misorientation angle)
+        //      https://www.desmos.com/calculator/gleyqfqseq
+        double read_shockley(const double gsh_distance);
         
     };
 }  // namespace SPPARKS_NS

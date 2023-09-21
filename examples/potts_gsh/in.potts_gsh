@@ -18,6 +18,15 @@ create_sites    box     # all site values are set to 0.0 initially
                         # values read in from microstructure file are assigned in init_app
                         # if no file given, random values assigned in init_app
 
+
+#———————————————————————————————————————————————————————————————————
+# user defined values
+
+# https://www.desmos.com/calculator/gleyqfqseq
+# TODO: get a real value for this
+gsh_dist_m      10   # related to theta_m in Read-Shockley
+
+
 #———————————————————————————————————————————————————————————————————
 # rKMC sweep algorithm
 
