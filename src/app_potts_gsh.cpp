@@ -30,17 +30,11 @@ using namespace SPPARKS_NS;
 AppPottsGSH::AppPottsGSH(SPPARKS* spk, int narg, char** arg) : AppPotts(spk, narg, arg) {
     ninteger = 1;
     ndouble = 0;
-
-    delpropensity = 1;
-    delevent = 0;
-
-    allow_kmc = 0;        // TODO: do we want kmc or rejection?
-    allow_rejection = 1;  // if both kmc and rejection are allowed, what is used?
-    allow_masking = 1;
-    numrandom = 1;
-
     create_arrays();
-    sites = unique = NULL;
+
+    allow_kmc = 0;
+    allow_rejection = 1;  
+    allow_masking = 1;
 
     // parse arguments for PottsGSH class only, not children
 
@@ -54,15 +48,13 @@ AppPottsGSH::AppPottsGSH(SPPARKS* spk, int narg, char** arg) : AppPotts(spk, nar
     spin2euler = result.spin2euler;
     spin2gsh = result.spin2gsh;
 
-    // TODO: create spin2quat
-
     if (nspins <= 0) error->all(FLERR, "Illegal app_style command");
-    dt_sweep = 1.0 / nspins;  // TODO: Because nspins is so large, this really slows down the simulation
-                              // where is this taking effect? Why does it slow the program so much?
-                              // when I make it smaller, the microstructure doesn't evolve the same
-                              // I think this will most likely be in one of the AppPotts functions
-                              // propensity, rejection, etc...
 
+    // dt_sweep = 1.0 / nspins;  // TODO: Because nspins is so large, this really slows down the simulation
+    //                           // where is this taking effect? Why does it slow the program so much?
+    //                           // when I make it smaller, the microstructure doesn't evolve the same
+    //                           // I think this will most likely be in one of the AppPotts functions
+    //                           // propensity, rejection, etc...
 
     // TODO: this is arbitrary, so we can speed up by doing only neighbors in site_event_rejection
 }
@@ -70,9 +62,6 @@ AppPottsGSH::AppPottsGSH(SPPARKS* spk, int narg, char** arg) : AppPotts(spk, nar
 /* ---------------------------------------------------------------------- */
 
 AppPottsGSH::~AppPottsGSH() {
-    delete[] sites;
-    delete[] unique;
-
     // Don't forget to free the memory for the custom arrays being used
     for (int i = 0; i < nspins; ++i) {
         delete[] spin2euler[i];
@@ -96,10 +85,8 @@ void AppPottsGSH::grow_app() {
 ------------------------------------------------------------------------- */
 
 void AppPottsGSH::init_app() {
-    delete[] sites;
-    delete[] unique;
-    sites = new int[1 + maxneigh];
-    unique = new int[1 + maxneigh];
+    // set dt_sweep based on number of neighbors
+    dt_sweep = 1.0 / maxneigh;
 
     // Initialize the spins based on file inputs.
     // TODO: This will eventually be EBSD data rather than random spins
@@ -119,7 +106,7 @@ void AppPottsGSH::init_app() {
     user defined optional parameters
  ------------------------------------------------------------------------- */
 void AppPottsGSH::input_app(char* command, int narg, char** arg) {
-    
+    // TODO: ?
 }
 
 /* ----------------------------------------------------------------------
@@ -154,23 +141,17 @@ double AppPottsGSH::site_energy(int i) {
 ------------------------------------------------------------------------- */
 
 void AppPottsGSH::site_event_rejection(int i, RandomPark* random) {
-    // save old state
+    
+    // save old state and get initial energy
     int oldstate = spin[i];
-
-    // get initial energy
     double einitial = site_energy(i);
 
-    // get new state and update spin[i]
-    // TODO: should this be completely random, or from neighbors?
-    int iran = rand() % nspins;
-    spin[i] = iran;
-
-    // get new energy
+    // get new state, update spin[i], get new energy
+    int j = (int) (numneigh[i]*random->uniform());
+    spin[i] = spin[neighbor[i][j]];
     double efinal = site_energy(i);
 
     // accept or reject via Boltzmann criterion
-    // null bin extends to nspins
-
     if (efinal <= einitial) {
     } else if (temperature == 0.0) {
         spin[i] = oldstate;

@@ -42,7 +42,6 @@ namespace SPPARKS_NS {
     protected:
         int nspins;
         int *spin;
-        int *sites, *unique;
 
         // spin maps 
         int n_euler_angles, n_gsh_coef;
