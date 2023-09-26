@@ -49,14 +49,6 @@ AppPottsGSH::AppPottsGSH(SPPARKS* spk, int narg, char** arg) : AppPotts(spk, nar
     spin2gsh = result.spin2gsh;
 
     if (nspins <= 0) error->all(FLERR, "Illegal app_style command");
-
-    // dt_sweep = 1.0 / nspins;  // TODO: Because nspins is so large, this really slows down the simulation
-    //                           // where is this taking effect? Why does it slow the program so much?
-    //                           // when I make it smaller, the microstructure doesn't evolve the same
-    //                           // I think this will most likely be in one of the AppPotts functions
-    //                           // propensity, rejection, etc...
-
-    // TODO: this is arbitrary, so we can speed up by doing only neighbors in site_event_rejection
 }
 
 /* ---------------------------------------------------------------------- */
@@ -87,6 +79,7 @@ void AppPottsGSH::grow_app() {
 void AppPottsGSH::init_app() {
     // set dt_sweep based on number of neighbors
     dt_sweep = 1.0 / maxneigh;
+    dt_sweep = 1.0;
 
     // Initialize the spins based on file inputs.
     // TODO: This will eventually be EBSD data rather than random spins
@@ -176,15 +169,6 @@ void AppPottsGSH::site_event_rejection(int i, RandomPark* random) {
 -------------------------------------------------------------------------
 -------------------------------------------------------------------------
 ----------------- Custom AppPottsGSH Functions --------------------------
--------------------------------------------------------------------------
--------------------------------------------------------------------------
-*/
-
-
-/*
--------------------------------------------------------------------------
--------------------------------------------------------------------------
------------------------- Custom Functions -------------------------------
 -------------------------------------------------------------------------
 -------------------------------------------------------------------------
 */

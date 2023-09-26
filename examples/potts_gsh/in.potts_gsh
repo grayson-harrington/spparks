@@ -13,7 +13,7 @@ app_style	    potts_gsh spin_to_angle_map.txt
 
 dimension	    2
 lattice		    sq/8n 1.0
-region		    box block 0 200 0 200 -0.5 0.5
+region		    box block 0 128 0 128 -0.5 0.5
 create_box	    box
 create_sites    box     # all site values are set to 0.0 initially
                         # values read in from microstructure file are assigned in init_app
@@ -31,6 +31,10 @@ diag_style      energy
 #———————————————————————————————————————————————————————————————————
 # user defined values
 
+# For the generic Potts model, 0.66 for 2D, 5.32 for 3D have been found to be optimal
+# TODO: for this model we have a different energy formulation and temperature should be optimized
+#       on the experimental data
+temperature 0.66            
 
 
 #———————————————————————————————————————————————————————————————————
@@ -42,6 +46,6 @@ dump            dump1 text 1.0 potts_gsh.dump id x y z i1 energy
 
 #———————————————————————————————————————————————————————————————————
 
-run             100
+run            800
 
 #———————————————————————————————————————————————————————————————————
