@@ -35,12 +35,9 @@ namespace SPPARKS_NS {
         virtual void init_app();
         virtual void input_app(char *, int, char **);
 
+        // rKMC functions
         virtual double site_energy(int);
-
-        //  TODO: I might be able to remove these from the header and cpp files if they are just inherited from AppPotts
-        // wait to see if you will be modifying any of them
         virtual void site_event_rejection(int, class RandomPark *);
-        virtual double site_propensity(int);
 
     protected:
         int nspins;
@@ -49,22 +46,7 @@ namespace SPPARKS_NS {
 
         // spin maps 
         int n_euler_angles, n_gsh_coef;
-        double **spin2euler, **spin2quat, **spin2gsh;
-    
-        // site energy functions and variables
-        //      type:
-        //          1 - spin count
-        //          2 - euler misorientation
-        //          3 - gsh distance
-        int site_energy_type; 
-
-        double site_energy_spin(int i);
-
-        double theta_m;
-        double read_shockley(const double theta);
-        double site_energy_read_shockley(int i);
-
-        double site_energy_gsh(int i);
+        double **spin2euler, **spin2gsh;
         
         // HELPER FUNCTIONS
 
@@ -73,11 +55,6 @@ namespace SPPARKS_NS {
 
         // euclidean distance between two double*
         double euclideanDistance(const double* array1, const double* array2, const int size);
-
-        // convert euler angles into quaternion
-        void euler2quaternion(const double euler_in[3], double quat_out[4]);
-
-        double angle_between(const double quat1[4], const double quat2[4]);
         
     };
 }  // namespace SPPARKS_NS

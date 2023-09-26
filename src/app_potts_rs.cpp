@@ -79,7 +79,6 @@ AppPottsRS::~AppPottsRS() {
     // free up memory from quaternion symmetry operator
     for (int i = 0; i < Osym; i++)
         delete[] symquat[i];
-
     delete[] symquat;
 }
 
@@ -515,4 +514,6 @@ void AppPottsRS::site_event_rejection(int i, RandomPark *random) {
     }
 
     if (spin[i] != oldstate) naccept++;
+
+    // TODO: masking?
 }

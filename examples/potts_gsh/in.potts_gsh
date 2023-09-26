@@ -5,6 +5,7 @@
 seed		    56789
 app_style	    potts_gsh spin_to_angle_map.txt 
 
+
 #———————————————————————————————————————————————————————————————————
 # simulation cell definition
 #   3D --> sc/26n 1.0
@@ -20,29 +21,24 @@ create_sites    box     # all site values are set to 0.0 initially
 
 
 #———————————————————————————————————————————————————————————————————
-# user defined values
-
-# choose energy model and give parameters
-# command type params
-#   type: 1 --> spin count,  2 --> misorientation energy,  3 --> gsh distance
-#       site_energy_type 1
-#       site_energy_type 2 d/r (degrees or radians)
-#       site_energy_type 3
-site_energy_type 3
-
-
-#———————————————————————————————————————————————————————————————————
 # rKMC sweep algorithm
 
 sweep		    random mask yes
 sector		    yes
 diag_style      energy
 
+
+#———————————————————————————————————————————————————————————————————
+# user defined values
+
+
+
 #———————————————————————————————————————————————————————————————————
 # program output
 
 stats           1
 dump            dump1 text 1.0 potts_gsh.dump id x y z i1 energy
+
 
 #———————————————————————————————————————————————————————————————————
 

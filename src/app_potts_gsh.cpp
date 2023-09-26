@@ -62,6 +62,9 @@ AppPottsGSH::AppPottsGSH(SPPARKS* spk, int narg, char** arg) : AppPotts(spk, nar
                               // when I make it smaller, the microstructure doesn't evolve the same
                               // I think this will most likely be in one of the AppPotts functions
                               // propensity, rejection, etc...
+
+
+    // TODO: this is arbitrary, so we can speed up by doing only neighbors in site_event_rejection
 }
 
 /* ---------------------------------------------------------------------- */
@@ -116,57 +119,7 @@ void AppPottsGSH::init_app() {
     user defined optional parameters
  ------------------------------------------------------------------------- */
 void AppPottsGSH::input_app(char* command, int narg, char** arg) {
-    if (strcmp(command, "site_energy_type") == 0) {
-        if (narg == 0) error->all(FLERR, "Illegal humph_n command\n");
-
-        site_energy_type = atoi(arg[0]);
-
-        double input;
-        char* units;
-
-        switch (site_energy_type) {
-            case 1:
-                // spin count
-                // no additional parameters required
-                break;
-            case 2:
-                // euler misorientation
-                // theta_m required
-                if (narg != 3) error->all(FLERR, "Illegal type 2 parameter count\n");
-
-                input = atof(arg[1]);
-                units = arg[2];
-
-                if (strcmp(units, "d") == 0 || strcmp(units, "deg") == 0 || strcmp(units, "degree") == 0 || strcmp(units, "degrees") == 0) {
-                    theta_m = input / 180.0 * M_PI;
-                } else if (strcmp(units, "r") == 0 || strcmp(units, "rad") == 0 || strcmp(units, "radian") == 0 || strcmp(units, "radians") == 0) {
-                    theta_m = input;
-                } else {
-                    error->all(FLERR, "Illegal angle unit specifier\n");
-                }
-
-                if (theta_m < 0) {
-                    error->all(FLERR, "theta_m input must be positive\n");
-                } else if (theta_m > M_PI) {
-                    error->all(FLERR, "theta_m must be between 0-180 degrees or 0-PI radians\n");
-                }
-
-                if (logfile)
-                    fprintf(logfile, "  site_energy_type set to %d\n", site_energy_type);
-                if (logfile)
-                    fprintf(logfile, "  theta_m set to %f radians\n", theta_m);
-                if (screen && me == 0)
-                    fprintf(screen, "  theta_m set to %f radians\n", theta_m);
-
-                break;
-            case 3:
-                // gsh distance
-                // no additional parameters required, yet
-                break;
-            default:
-                error->all(FLERR, "Invalid site_energy_type\n");
-        }
-    }
+    
 }
 
 /* ----------------------------------------------------------------------
@@ -174,21 +127,24 @@ void AppPottsGSH::input_app(char* command, int narg, char** arg) {
 ------------------------------------------------------------------------- */
 
 double AppPottsGSH::site_energy(int i) {
-    // here is where we will use our custom distance function.
 
-    switch (site_energy_type) {
-        case 1:
-            return site_energy_spin(i);
-        case 2:
-            return site_energy_read_shockley(i);
-        case 3:
-            return site_energy_gsh(i);
-        default:
-            error->all(FLERR, "Invalid site_energy_type\n");
-            return INFINITY;
+    // TODO: This will be a custom learned function in the future
+    //       will most likely take as input two gshs and output energy
+
+    double gsh_dist;
+    double eng = 0.0;
+
+    double* gsh_isite = spin2gsh[spin[i]];
+    double* gsh_jsite;
+
+    int nei;
+    for (int j = 0; j < numneigh[i]; j++) {
+        nei = neighbor[i][j];
+        gsh_jsite = spin2gsh[spin[nei]];
+        eng += euclideanDistance(gsh_isite, gsh_jsite, n_gsh_coef);
     }
 
-    
+    return eng;
 }
 
 /* ----------------------------------------------------------------------
@@ -235,51 +191,6 @@ void AppPottsGSH::site_event_rejection(int i, RandomPark* random) {
     }
 }
 
-/* ----------------------------------------------------------------------
-   KMC method
-   compute total propensity of owned site summed over possible events
-------------------------------------------------------------------------- */
-
-// TODO: Unchanged so far
-double AppPottsGSH::site_propensity(int i) {
-    // events = spin flips to neighboring site different than self
-    // disallow wild flips = flips to value different than all neighs
-
-    int j, m, value;
-    int nevent = 0;
-
-    for (j = 0; j < numneigh[i]; j++) {
-        value = spin[neighbor[i][j]];
-        if (value == spin[i]) continue;
-        for (m = 0; m < nevent; m++)
-            if (value == unique[m]) break;
-        if (m < nevent) continue;
-        unique[nevent++] = value;
-    }
-
-    // for each flip:
-    // compute energy difference between initial and final state
-    // if downhill or no energy change, propensity = 1
-    // if uphill energy change, propensity = Boltzmann factor
-
-    int oldstate = spin[i];
-    double einitial = site_energy(i);
-    double efinal;
-    double prob = 0.0;
-
-    for (m = 0; m < nevent; m++) {
-        spin[i] = unique[m];
-        efinal = site_energy(i);
-        if (efinal <= einitial)
-            prob += 1.0;
-        else if (temperature > 0.0)
-            prob += exp((einitial - efinal) * t_inverse);
-    }
-
-    spin[i] = oldstate;
-    return prob;
-}
-
 /*
 -------------------------------------------------------------------------
 -------------------------------------------------------------------------
@@ -288,66 +199,6 @@ double AppPottsGSH::site_propensity(int i) {
 -------------------------------------------------------------------------
 */
 
-double AppPottsGSH::site_energy_spin(int i) {
-    int isite = spin[i];
-    int eng = 0;
-    for (int j = 0; j < numneigh[i]; j++)
-        if (isite != spin[neighbor[i][j]]) eng++;
-    return (double)eng;
-}
-
-double AppPottsGSH::site_energy_read_shockley(int i) {
-    // double quat_i[4] = {quat_a[i], quat_b[i], quat_c[i], quat_d[i]};
-
-    // double energy = 0.0;
-    // int nei;
-    // for (int j = 0; j < numneigh[i]; j++) {
-    //     nei = neighbor[i][j];
-    //     double quat_nei[4] = {quat_a[nei], quat_b[nei], quat_c[nei], quat_d[nei]};
-    //     double miso = angle_between(quat_i, quat_nei);
-    //     energy += read_shockley(miso);
-    // }
-    // return (double)energy;
-
-    // TODO: have this change based on site_energy_type
-
-    return 0;
-}
-
-double AppPottsGSH::site_energy_gsh(int i) {
-    // TODO: This will be a custom learned function in the future
-    double gsh_dist;
-    double eng = 0.0;
-
-    double* gsh_isite = spin2gsh[spin[i]];
-    double* gsh_jsite;
-
-    int nei;
-    for (int j = 0; j < numneigh[i]; j++) {
-        nei = neighbor[i][j];
-        gsh_jsite = spin2gsh[spin[nei]];
-        eng += euclideanDistance(gsh_isite, gsh_jsite, n_gsh_coef);
-    }
-
-    return eng;
-}
-
-// Read-Shockley misorientation energy
-//  https://www.desmos.com/calculator/gleyqfqseq
-double AppPottsGSH::read_shockley(const double theta) {
-    double energy = 0;
-
-    if (theta >= theta_m) {
-        energy = 1;
-    } else if (theta == 0) {
-        energy = 0;
-    } else {
-        double ratio = theta / theta_m;
-        energy = ratio * (1 - log(ratio));
-    }
-
-    return energy;
-}
 
 /*
 -------------------------------------------------------------------------
@@ -407,37 +258,4 @@ double AppPottsGSH::euclideanDistance(const double* array1, const double* array2
     }
 
     return sqrt(sum);
-}
-
-void AppPottsGSH::euler2quaternion(const double euler_in[3], double quat_out[4]) {
-    double alpha = euler_in[0];
-    double beta = euler_in[1];
-    double gamma = euler_in[2];
-
-    double sigma = 0.5 * (alpha + gamma);
-    double delta = 0.5 * (alpha - gamma);
-
-    double c = cos(beta / 2);
-    double s = sin(beta / 2);
-
-    quat_out[0] = c * cos(sigma);
-    quat_out[1] = -s * cos(delta);
-    quat_out[2] = -s * sin(delta);
-    quat_out[3] = -c * sin(sigma);
-
-    if (quat_out[0] < 0) {
-        quat_out[0] *= -1;
-        quat_out[1] *= -1;
-        quat_out[2] *= -1;
-        quat_out[3] *= -1;
-    }
-}
-
-double AppPottsGSH::angle_between(const double quat1[4], const double quat2[4]) {
-    double dot = quat1[0] * quat2[0] + quat1[1] * quat2[1] + quat1[2] * quat2[2] + quat1[3] * quat2[3];
-    double angle = acos(2 * pow(dot, 2) - 1);
-    if (isnan(angle)) {
-        angle = 0;
-    }
-    return angle;
 }

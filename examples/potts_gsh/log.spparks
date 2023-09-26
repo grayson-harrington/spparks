@@ -6,6 +6,7 @@ SPPARKS (6 Sep 2023)
 seed		    56789
 app_style	    potts_gsh spin_to_angle_map.txt 
 
+
 #———————————————————————————————————————————————————————————————————
 # simulation cell definition
 #   3D --> sc/26n 1.0
@@ -26,29 +27,24 @@ Creating sites ...
 
 
 #———————————————————————————————————————————————————————————————————
-# user defined values
-
-# choose energy model and give parameters
-# command type params
-#   type: 1 --> spin count,  2 --> misorientation energy,  3 --> gsh distance
-#       site_energy_type 1
-#       site_energy_type 2 d/r (degrees or radians)
-#       site_energy_type 3
-site_energy_type 3
-
-
-#———————————————————————————————————————————————————————————————————
 # rKMC sweep algorithm
 
 sweep		    random mask yes
 sector		    yes
 diag_style      energy
 
+
+#———————————————————————————————————————————————————————————————————
+# user defined values
+
+
+
 #———————————————————————————————————————————————————————————————————
 # program output
 
 stats           1
 dump            dump1 text 1.0 potts_gsh.dump id x y z i1 energy
+
 
 #———————————————————————————————————————————————————————————————————
 
@@ -58,3 +54,5 @@ Running with 32-bit site IDs
 Memory usage per processor = 2.125 Mbytes
       Time    Naccept    Nreject    Nsweeps        CPU     Energy
          0          0          0          0          0    14970.3
+    1.0001       3064    3997336      10001       3.76    7647.22
+    2.0001       3310    7997090      20001       6.54    6167.65
