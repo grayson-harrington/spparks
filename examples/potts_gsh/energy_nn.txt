@@ -1,0 +1,26 @@
+
+nn_shape 6 2 1
+
+hidden_activation relu 
+
+output_activation sigmoid 
+
+input_hidden_weights
+0.12 0.56
+-0.87 0.45
+0.32 -0.67
+-0.15 0.78
+0.91 -0.27
+-0.63 -0.41
+
+hidden_bias
+-0.23 0.89
+
+hidden_output_weights
+0.55
+-0.71
+
+output_bias
+-0.12
+
+

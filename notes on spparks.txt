@@ -1,0 +1,6 @@
+AppLattice function call order:
+
+CONSTRUCTOR
+GROW
+INPUT
+INIT

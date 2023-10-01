@@ -3,7 +3,7 @@
 #———————————————————————————————————————————————————————————————————
 
 seed		    56789
-app_style	    potts_gsh spin_to_angle_map.txt 
+app_style	    potts_gsh spin_to_angle_map.txt energy_nn.txt  # TODO: I think microstructure and spins will have to be loaded in here.
 
 
 #———————————————————————————————————————————————————————————————————
@@ -29,12 +29,12 @@ diag_style      energy
 
 
 #———————————————————————————————————————————————————————————————————
-# user defined values
+# AppPottsGSH custom input
 
 # For the generic Potts model, 0.66 for 2D, 5.32 for 3D have been found to be optimal
 # TODO: for this model we have a different energy formulation and temperature should be optimized
 #       on the experimental data
-temperature 0.66            
+temperature 0.66  
 
 
 #———————————————————————————————————————————————————————————————————
@@ -46,6 +46,6 @@ dump            dump1 text 1.0 potts_gsh.dump id x y z i1 energy
 
 #———————————————————————————————————————————————————————————————————
 
-run            800
+run            100
 
 #———————————————————————————————————————————————————————————————————

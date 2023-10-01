@@ -18,44 +18,77 @@ AppStyle(potts_gsh, AppPottsGSH)
 #ifndef SPK_APP_POTTS_GSH_H
 #define SPK_APP_POTTS_GSH_H
 
+#include <string>
+#include <vector>
+
 #include "app_potts.h"
 
 namespace SPPARKS_NS {
 
-    struct SpinMaps {
-        double **spin2euler;
-        double **spin2gsh;
-    };
+class NeuralNetwork {
+   public:
+    NeuralNetwork();
+    NeuralNetwork(char *filePath);
+    ~NeuralNetwork();
 
-    class AppPottsGSH : public AppPotts {
-    public:
-        AppPottsGSH(class SPPARKS *, int, char **);
-        virtual ~AppPottsGSH();
-        virtual void grow_app();
-        virtual void init_app();
-        virtual void input_app(char *, int, char **);
+    // weights and biases for the hidden and output layers
+    int inputSize;
+    int hiddenSize;
+    int outputSize;
 
-        // rKMC functions
-        virtual double site_energy(int);
-        virtual void site_event_rejection(int, class RandomPark *);
+    std::vector<std::vector<double> > weightsInputHidden;
+    std::vector<std::vector<double> > weightsHiddenOutput;
+    std::vector<double> biasHidden;
+    std::vector<double> biasOutput;
 
-    protected:
-        int nspins;
-        int *spin;
+    // activation functions
+    std::string hidden_activation;
+    std::string output_activation;
 
-        // spin maps 
-        int n_euler_angles, n_gsh_coef;
-        double **spin2euler, **spin2gsh;
-        
-        // HELPER FUNCTIONS
+    double sigmoid(double x);
+    double relu(double x);
 
-        // returns the maps (spin to euler, spin to gsh)
-        SpinMaps read_spin2angle_map(const char *filePath, int &n_lines, int &n_eul, int &n_gsh);
+    // Forward pass through the network
+    std::vector<double> forward(const std::vector<double> &input);
+};
 
-        // euclidean distance between two double*
-        double euclideanDistance(const double* array1, const double* array2, const int size);
-        
-    };
+struct SpinMaps {
+    double **spin2euler;
+    double **spin2gsh;
+};
+
+class AppPottsGSH : public AppPotts {
+   public:
+    AppPottsGSH(class SPPARKS *, int, char **);
+    virtual ~AppPottsGSH();
+    virtual void grow_app();
+    virtual void init_app();
+    virtual void input_app(char *, int, char **);
+
+    // rKMC functions
+    virtual double site_energy(int);
+    virtual void site_event_rejection(int, class RandomPark *);
+
+   protected:
+    int nspins;
+    int *spin;
+
+    // spin maps
+    int n_euler_angles, n_gsh_coef;
+    double **spin2euler, **spin2gsh;
+
+    // nn_energy_function
+    NeuralNetwork nn;
+
+    // HELPER FUNCTIONS
+
+    // returns the maps (spin to euler, spin to gsh)
+    SpinMaps read_spin2angle_map(const char *filePath, int &n_lines, int &n_eul, int &n_gsh);
+
+    // euclidean distance between two double*
+    double euclideanDistance(const double *array1, const double *array2, const int size);
+};
+
 }  // namespace SPPARKS_NS
 
 #endif
