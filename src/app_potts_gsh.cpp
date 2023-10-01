@@ -113,7 +113,7 @@ void AppPottsGSH::input_app(char* command, int narg, char** arg) {
    compute energy of site
 ------------------------------------------------------------------------- */
 
-// gsh euclidean distance site energy
+// // gsh euclidean distance site energy
 // double AppPottsGSH::site_energy(int i) {
 
 //     double gsh_dist;
@@ -132,6 +132,7 @@ void AppPottsGSH::input_app(char* command, int narg, char** arg) {
 //     return eng;
 // }
 
+// gsh energy from nn
 double AppPottsGSH::site_energy(int i) {
 
     double nn_energy;

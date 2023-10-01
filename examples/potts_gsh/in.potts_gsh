@@ -3,6 +3,8 @@
 #———————————————————————————————————————————————————————————————————
 
 seed		    56789
+
+# TODO: the spin map txt file is not the correct one. Need to use the 81 Mb file.
 app_style	    potts_gsh spin_to_angle_map.txt energy_nn.txt  # TODO: I think microstructure and spins will have to be loaded in here.
 
 
