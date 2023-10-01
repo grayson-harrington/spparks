@@ -106,7 +106,7 @@ void AppPottsGSH::input_app(char* command, int narg, char** arg) {
         error->all(FLERR, "Invalid command for app_style");
     }
 
-    // TODO: any inputs?
+    // add parsing here
 }
 
 /* ----------------------------------------------------------------------
@@ -133,7 +133,6 @@ void AppPottsGSH::input_app(char* command, int narg, char** arg) {
 // }
 
 double AppPottsGSH::site_energy(int i) {
-    // TODO: get working with NN
 
     double nn_energy;
     double eng = 0.0;
@@ -146,12 +145,12 @@ double AppPottsGSH::site_energy(int i) {
     for (int j = 0; j < numneigh[i]; j++) {
         nei = neighbor[i][j];
         gsh_jsite = spin2gsh[spin[nei]];
-
-        nn_input = {gsh_isite[1], gsh_isite[3], gsh_isite[5],
-                      gsh_jsite[1], gsh_jsite[3], gsh_jsite[5]};
-        eng += nn.forward(nn_input)[0];
-
         
+        // gsh misorientation depends on 1, 5, and 105 from the single crystral gsh values
+        nn_input = {gsh_isite[1], gsh_isite[5], gsh_isite[105],
+                      gsh_jsite[1], gsh_jsite[5], gsh_jsite[105]};
+
+        eng += nn.forward(nn_input)[0];
     }
 
     return eng;
