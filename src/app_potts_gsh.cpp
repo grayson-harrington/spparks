@@ -51,6 +51,7 @@ AppPottsGSH::AppPottsGSH(SPPARKS* spk, int narg, char** arg) : AppPotts(spk, nar
     // load in neural network energy function
     nn = NeuralNetwork(arg[2]);
 
+    dt_sweep = 1.0;
     if (nspins <= 0) error->all(FLERR, "Illegal app_style command");
 }
 
@@ -78,18 +79,7 @@ void AppPottsGSH::grow_app() {
    initialize before each run
    check validity of site values
 ------------------------------------------------------------------------- */
-
 void AppPottsGSH::init_app() {
-    // set dt_sweep based on number of neighbors
-    dt_sweep = 1.0 / maxneigh;
-    dt_sweep = 1.0;
-
-    // Initialize the spins based on file inputs.
-    // TODO: This will eventually be EBSD data rather than random spins
-    for (int i = 0; i < nlocal; i++) {
-        spin[i] = rand() % nspins;
-    }
-
     int flag = 0;
     for (int i = 0; i < nlocal; i++)
         if (spin[i] < 0 || spin[i] > nspins - 1) flag = 1;
@@ -106,6 +96,9 @@ void AppPottsGSH::input_app(char* command, int narg, char** arg) {
         error->all(FLERR, "Invalid command for app_style");
     }
 
+    if (strcmp(command, "read_sites") == 0) {
+        init_micro = true;
+    }
     // add parsing here
 }
 

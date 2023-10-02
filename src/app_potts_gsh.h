@@ -73,6 +73,8 @@ class AppPottsGSH : public AppPotts {
     int nspins;
     int *spin;
 
+    bool init_micro = false;
+
     // spin maps
     int n_euler_angles, n_gsh_coef;
     double **spin2euler, **spin2gsh;
