@@ -16,12 +16,10 @@ dimension	    2
 lattice		    sq/8n 1.0
 region		    box block 0 128 0 128 -0.5 0.5          # domain size here must be the same as any microstructure that is provided down below
 create_box	    box
-create_sites    box     # all site values are set to 0.0 initially
-                        # values read in from microstructure file are assigned in init_app
-                        # if no file given, random values assigned in init_app
+create_sites    box
 
-set             i1 range 0 30443        # max value needs to be the number of unique spins in the spin map                     
-read_sites      my.sites.1              # if included, reads file and starts from that point
+set             i1 range 0 30443        # TODO: max value needs to be the number of unique spins in the spin map                     
+read_sites      init_micro.txt              # if included, reads file and starts from that point
 
 #———————————————————————————————————————————————————————————————————
 # rKMC sweep algorithm
@@ -29,7 +27,6 @@ read_sites      my.sites.1              # if included, reads file and starts fro
 sweep		    random mask yes
 sector		    yes
 diag_style      energy
-
 
 #———————————————————————————————————————————————————————————————————
 # AppPottsGSH custom input
@@ -45,7 +42,6 @@ temperature 0.66
 stats           1
 dump            dump1 text 1.0 potts_gsh.dump id x y z i1 energy
 # dump            dump2 sites 100 my.sites.* id i1
-
 
 #———————————————————————————————————————————————————————————————————
 
