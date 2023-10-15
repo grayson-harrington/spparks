@@ -40,8 +40,12 @@ temperature 0.66
 # program output
 
 stats           1
-dump            dump1 text 1.0 potts_gsh.dump id x y z i1 energy
-# dump            dump2 sites 100 my.sites.* id i1
+
+dump            dump_vtk vtk 100 my.vkt.* site
+dump_modify     dump_vtk vtk 128 128 1 0 30443 sort id
+
+# dump            dump_text text 1.0 potts_gsh.dump id x y z i1 energy
+# dump            dump_sites sites 100 my.sites.* id i1
 
 #———————————————————————————————————————————————————————————————————
 

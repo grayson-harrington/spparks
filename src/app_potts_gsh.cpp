@@ -106,31 +106,11 @@ void AppPottsGSH::input_app(char* command, int narg, char** arg) {
    compute energy of site
 ------------------------------------------------------------------------- */
 
-// // gsh euclidean distance site energy
-// double AppPottsGSH::site_energy(int i) {
-
-//     double gsh_dist;
-//     double eng = 0.0;
-
-//     double* gsh_isite = spin2gsh[spin[i]];
-//     double* gsh_jsite;
-
-//     int nei;
-//     for (int j = 0; j < numneigh[i]; j++) {
-//         nei = neighbor[i][j];
-//         gsh_jsite = spin2gsh[spin[nei]];
-//         eng += euclideanDistance(gsh_isite, gsh_jsite, n_gsh_coef);
-//     }
-
-//     return eng;
-// }
-
-// gsh energy from nn
+// gsh euclidean distance site energy
 double AppPottsGSH::site_energy(int i) {
 
-    double nn_energy;
+    double gsh_dist;
     double eng = 0.0;
-    std::vector<double> nn_input;
 
     double* gsh_isite = spin2gsh[spin[i]];
     double* gsh_jsite;
@@ -139,16 +119,39 @@ double AppPottsGSH::site_energy(int i) {
     for (int j = 0; j < numneigh[i]; j++) {
         nei = neighbor[i][j];
         gsh_jsite = spin2gsh[spin[nei]];
-        
-        // gsh misorientation depends on 1, 5, and 105 from the single crystral gsh values
-        nn_input = {gsh_isite[1], gsh_isite[5], gsh_isite[105],
-                      gsh_jsite[1], gsh_jsite[5], gsh_jsite[105]};
 
-        eng += nn.forward(nn_input)[0];
+        // Can choose between euclidean distance on just 3 values or on all 130
+        eng += (gsh_isite[1]-gsh_jsite[1])*(gsh_isite[1]-gsh_jsite[1]) + (gsh_isite[5]-gsh_jsite[5])*(gsh_isite[5]-gsh_jsite[5]) + (gsh_isite[105]-gsh_jsite[105])*(gsh_isite[105]-gsh_jsite[105]);
+        // eng += euclideanDistance(gsh_isite, gsh_jsite, n_gsh_coef);
     }
 
     return eng;
 }
+
+// gsh energy from nn
+// double AppPottsGSH::site_energy(int i) {
+
+//     double nn_energy;
+//     double eng = 0.0;
+//     std::vector<double> nn_input;
+
+//     double* gsh_isite = spin2gsh[spin[i]];
+//     double* gsh_jsite;
+
+//     int nei;
+//     for (int j = 0; j < numneigh[i]; j++) {
+//         nei = neighbor[i][j];
+//         gsh_jsite = spin2gsh[spin[nei]];
+        
+//         // gsh misorientation depends on 1, 5, and 105 from the single crystral gsh values
+//         nn_input = {gsh_isite[1], gsh_isite[5], gsh_isite[105],
+//                       gsh_jsite[1], gsh_jsite[5], gsh_jsite[105]};
+
+//         eng += nn.forward(nn_input)[0];
+//     }
+
+//     return eng;
+// }
 
 /* ----------------------------------------------------------------------
    rKMC method
