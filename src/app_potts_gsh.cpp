@@ -48,8 +48,11 @@ AppPottsGSH::AppPottsGSH(SPPARKS* spk, int narg, char** arg) : AppPotts(spk, nar
     spin2euler = result.spin2euler;
     spin2gsh = result.spin2gsh;
 
-    // load in neural network energy function
-    nn = NeuralNetwork(arg[2]);
+    // // load in neural network energy function
+    // nn = NeuralNetwork(arg[2]);
+
+    // load in the rbf energy function data
+    read_rbf_input(arg[2], rbf_positions, rbf_scales);
 
     dt_sweep = 1.0;
     if (nspins <= 0) error->all(FLERR, "Illegal app_style command");
@@ -107,26 +110,27 @@ void AppPottsGSH::input_app(char* command, int narg, char** arg) {
 ------------------------------------------------------------------------- */
 
 // gsh euclidean distance site energy
-double AppPottsGSH::site_energy(int i) {
+// double AppPottsGSH::site_energy(int i) {
 
-    double gsh_dist;
-    double eng = 0.0;
+//     double gsh_dist;
+//     double eng = 0.0;
 
-    double* gsh_isite = spin2gsh[spin[i]];
-    double* gsh_jsite;
+//     double* gsh_isite = spin2gsh[spin[i]];
+//     double* gsh_jsite;
 
-    int nei;
-    for (int j = 0; j < numneigh[i]; j++) {
-        nei = neighbor[i][j];
-        gsh_jsite = spin2gsh[spin[nei]];
+//     int nei;
+//     for (int j = 0; j < numneigh[i]; j++) {
+//         nei = neighbor[i][j];
+//         gsh_jsite = spin2gsh[spin[nei]];
 
-        // Can choose between euclidean distance on just 3 values or on all 130
-        eng += (gsh_isite[1]-gsh_jsite[1])*(gsh_isite[1]-gsh_jsite[1]) + (gsh_isite[5]-gsh_jsite[5])*(gsh_isite[5]-gsh_jsite[5]) + (gsh_isite[105]-gsh_jsite[105])*(gsh_isite[105]-gsh_jsite[105]);
-        // eng += euclideanDistance(gsh_isite, gsh_jsite, n_gsh_coef);
-    }
+//         // Can choose between euclidean distance on just 3 values or on all 130
 
-    return eng;
-}
+//         // eng += (gsh_isite[1]-gsh_jsite[1])*(gsh_isite[1]-gsh_jsite[1]) + (gsh_isite[5]-gsh_jsite[5])*(gsh_isite[5]-gsh_jsite[5]) + (gsh_isite[105]-gsh_jsite[105])*(gsh_isite[105]-gsh_jsite[105]);
+//         eng += euclideanDistance(gsh_isite, gsh_jsite, n_gsh_coef);
+//     }
+
+//     return eng;
+// }
 
 // gsh energy from nn
 // double AppPottsGSH::site_energy(int i) {
@@ -152,6 +156,38 @@ double AppPottsGSH::site_energy(int i) {
 
 //     return eng;
 // }
+
+// gsh energy from rbfs
+double AppPottsGSH::site_energy(int i) {
+
+    double nn_energy;
+    double eng = 0.0;
+    std::vector<double> nn_input;
+
+    double* gsh_isite = spin2gsh[spin[i]];
+    double* gsh_jsite;
+
+    int nei;
+    for (int j = 0; j < numneigh[i]; j++) {
+        nei = neighbor[i][j];
+        gsh_jsite = spin2gsh[spin[nei]];
+
+        // TODO: rbf energy function
+
+        // get rbf input
+        std::vector<double> x;
+        for (int i = 1; i <= 9; i++) {
+            x.push_back(gsh_isite[i]);
+        }
+        for (int i = 1; i <= 9; i++) {
+            x.push_back(gsh_jsite[i]);
+        }
+
+        eng += rbf_energy_function(rbf_positions, rbf_scales, x);
+    }
+
+    return eng;
+}
 
 /* ----------------------------------------------------------------------
    rKMC method
@@ -242,12 +278,70 @@ SpinMaps AppPottsGSH::read_spin2angle_map(const char* filePath, int& n_lines, in
 double AppPottsGSH::euclideanDistance(const double* array1, const double* array2, const int size) {
     double sum = 0.0;
 
-    for (int i = 0; i < size; ++i) {
+    for (int i = 1; i < size; ++i) {
         double diff = array1[i] - array2[i];
         sum += diff * diff;
+
+        if (i == 9) break; // first 9 gsh values (ignoring the 1)
     }
 
     return sqrt(sum);
+}
+
+void AppPottsGSH::read_rbf_input(const std::string& filename, std::vector<std::vector<double>>& positions, std::vector<double>& scales) {
+    positions.clear();
+    scales.clear();
+    
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Error: Could not open the file." << std::endl;
+        return;
+    }
+    
+    std::string line;
+    int lineCount = 0;
+    int n_positions = 0;
+
+    while (std::getline(file, line)) {
+        std::istringstream ss(line);
+        double value;
+        std::vector<double> data;
+
+        while (ss >> value) {
+            data.push_back(value);
+        }
+
+        if (lineCount == 0) {
+            if (data.size() == 1) {
+                n_positions = data[0];
+            } else {
+                std::cerr << "Error: Invalid input format." << std::endl;
+                return;
+            }
+        } else {
+            if (lineCount <= n_positions) {
+                positions.push_back(data);
+            } else {
+                scales = data;
+            }
+        }
+        
+        lineCount++;
+    }
+}
+
+double AppPottsGSH::rbf_energy_function(std::vector<std::vector<double>> positions, std::vector<double> scales, std::vector<double> x) {
+    double result = 0.0;
+    
+    for (size_t i = 0; i < positions.size(); i++) {
+        double n = 0.0;
+        for (size_t j = 0; j < positions[i].size(); j++) {
+            n += scales[i] * pow(x[j] - positions[i][j], 2);
+        }
+        result -= exp(-pow(n, 2));
+    }
+
+    return result + 1;
 }
 
 /*

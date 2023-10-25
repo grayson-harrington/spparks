@@ -36,8 +36,8 @@ class NeuralNetwork {
     int hiddenSize;
     int outputSize;
 
-    std::vector<std::vector<double> > weightsInputHidden;
-    std::vector<std::vector<double> > weightsHiddenOutput;
+    std::vector<std::vector<double>> weightsInputHidden;
+    std::vector<std::vector<double>> weightsHiddenOutput;
     std::vector<double> biasHidden;
     std::vector<double> biasOutput;
 
@@ -81,6 +81,12 @@ class AppPottsGSH : public AppPotts {
 
     // nn_energy_function
     NeuralNetwork nn;
+
+    // rbf energy function
+    std::vector<std::vector<double>> rbf_positions;
+    std::vector<double> rbf_scales;
+    void read_rbf_input(const std::string& filename, std::vector<std::vector<double>>& positions, std::vector<double>& scales);
+    double rbf_energy_function(std::vector<std::vector<double>> positions, std::vector<double> scales, std::vector<double> x);
 
     // HELPER FUNCTIONS
 

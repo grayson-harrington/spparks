@@ -4,7 +4,7 @@
 
 seed		    56789
 
-app_style	    potts_gsh spin_to_angle_map.txt energy_nn.txt 
+app_style	    potts_gsh spin_to_angle_map.txt rbf_input.txt 
 
 
 #———————————————————————————————————————————————————————————————————
@@ -41,6 +41,7 @@ temperature 0.66
 
 stats           1
 
+dump            normal text 1.0 dump.potts
 dump            dump_vtk vtk 100 my.vkt.* site
 dump_modify     dump_vtk vtk 128 128 1 0 30443 sort id
 
