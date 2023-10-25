@@ -34,7 +34,7 @@ diag_style      energy
 # For the generic Potts model, 0.66 for 2D, 5.32 for 3D have been found to be optimal
 # TODO: this temperature needs to be in the same "units" as the energy function
 
-temperature 0.66  
+temperature 0.0 
 
 #———————————————————————————————————————————————————————————————————
 # program output

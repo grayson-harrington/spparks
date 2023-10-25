@@ -48,6 +48,9 @@ AppPottsGSH::AppPottsGSH(SPPARKS* spk, int narg, char** arg) : AppPotts(spk, nar
     spin2euler = result.spin2euler;
     spin2gsh = result.spin2gsh;
 
+
+    // TODO:  decide nn or rbf
+
     // // load in neural network energy function
     // nn = NeuralNetwork(arg[2]);
 
@@ -150,8 +153,19 @@ void AppPottsGSH::input_app(char* command, int narg, char** arg) {
 //         // gsh misorientation depends on 1, 5, and 105 from the single crystral gsh values
 //         nn_input = {gsh_isite[1], gsh_isite[5], gsh_isite[105],
 //                       gsh_jsite[1], gsh_jsite[5], gsh_jsite[105]};
+        
+//         bool same = true;
+//         for (int i = 0; i < 3; i++) {
+//             if (nn_input[i] != nn_input[i+3]) {
+//                 same = false;
+//             }
+//         }
 
-//         eng += nn.forward(nn_input)[0];
+//         if (same) {
+//             eng += 0;
+//         } else {
+//             eng += nn.forward(nn_input)[0];
+//         }
 //     }
 
 //     return eng;
@@ -172,18 +186,24 @@ double AppPottsGSH::site_energy(int i) {
         nei = neighbor[i][j];
         gsh_jsite = spin2gsh[spin[nei]];
 
-        // TODO: rbf energy function
-
         // get rbf input
         std::vector<double> x;
+        bool same = true;
         for (int i = 1; i <= 9; i++) {
             x.push_back(gsh_isite[i]);
         }
         for (int i = 1; i <= 9; i++) {
+            if (x[i-1] != gsh_jsite[i]) {
+                same = false;
+            }
             x.push_back(gsh_jsite[i]);
         }
 
-        eng += rbf_energy_function(rbf_positions, rbf_scales, x);
+        if (same) {
+            eng += 0;
+        } else {
+            eng += rbf_energy_function(rbf_positions, rbf_scales, x);
+        }
     }
 
     return eng;
@@ -332,6 +352,8 @@ void AppPottsGSH::read_rbf_input(const std::string& filename, std::vector<std::v
 
 double AppPottsGSH::rbf_energy_function(std::vector<std::vector<double>> positions, std::vector<double> scales, std::vector<double> x) {
     double result = 0.0;
+
+    int n_rbfs = positions.size();
     
     for (size_t i = 0; i < positions.size(); i++) {
         double n = 0.0;
@@ -341,7 +363,9 @@ double AppPottsGSH::rbf_energy_function(std::vector<std::vector<double>> positio
         result -= exp(-pow(n, 2));
     }
 
-    return result + 1;
+    double eng = (result + n_rbfs)/n_rbfs;
+
+    return eng;
 }
 
 /*

@@ -78,6 +78,8 @@ class AppPottsGSH : public AppPotts {
     // spin maps
     int n_euler_angles, n_gsh_coef;
     double **spin2euler, **spin2gsh;
+    // returns the maps (spin to euler, spin to gsh)
+    SpinMaps read_spin2angle_map(const char *filePath, int &n_lines, int &n_eul, int &n_gsh);
 
     // nn_energy_function
     NeuralNetwork nn;
@@ -89,9 +91,6 @@ class AppPottsGSH : public AppPotts {
     double rbf_energy_function(std::vector<std::vector<double>> positions, std::vector<double> scales, std::vector<double> x);
 
     // HELPER FUNCTIONS
-
-    // returns the maps (spin to euler, spin to gsh)
-    SpinMaps read_spin2angle_map(const char *filePath, int &n_lines, int &n_eul, int &n_gsh);
 
     // euclidean distance between two double*
     double euclideanDistance(const double *array1, const double *array2, const int size);
