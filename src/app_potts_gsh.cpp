@@ -48,14 +48,13 @@ AppPottsGSH::AppPottsGSH(SPPARKS* spk, int narg, char** arg) : AppPotts(spk, nar
     spin2euler = result.spin2euler;
     spin2gsh = result.spin2gsh;
 
-
-    // TODO:  decide nn or rbf
+    // TODO:  decide nn, rbf, or euclidean
 
     // // load in neural network energy function
     // nn = NeuralNetwork(arg[2]);
 
     // load in the rbf energy function data
-    read_rbf_input(arg[2], rbf_positions, rbf_scales);
+    // read_rbf_input(arg[2], rbf_positions, rbf_scales);
 
     dt_sweep = 1.0;
     if (nspins <= 0) error->all(FLERR, "Illegal app_style command");
@@ -112,28 +111,30 @@ void AppPottsGSH::input_app(char* command, int narg, char** arg) {
    compute energy of site
 ------------------------------------------------------------------------- */
 
+// TODO: choose between nn, rbf, or euclidean
+
 // gsh euclidean distance site energy
-// double AppPottsGSH::site_energy(int i) {
+double AppPottsGSH::site_energy(int i) {
 
-//     double gsh_dist;
-//     double eng = 0.0;
+    double gsh_dist;
+    double eng = 0.0;
 
-//     double* gsh_isite = spin2gsh[spin[i]];
-//     double* gsh_jsite;
+    double* gsh_isite = spin2gsh[spin[i]];
+    double* gsh_jsite;
 
-//     int nei;
-//     for (int j = 0; j < numneigh[i]; j++) {
-//         nei = neighbor[i][j];
-//         gsh_jsite = spin2gsh[spin[nei]];
+    int nei;
+    for (int j = 0; j < numneigh[i]; j++) {
+        nei = neighbor[i][j];
+        gsh_jsite = spin2gsh[spin[nei]];
 
-//         // Can choose between euclidean distance on just 3 values or on all 130
+        // Can choose between euclidean distance on just 3 values or on all 130
 
-//         // eng += (gsh_isite[1]-gsh_jsite[1])*(gsh_isite[1]-gsh_jsite[1]) + (gsh_isite[5]-gsh_jsite[5])*(gsh_isite[5]-gsh_jsite[5]) + (gsh_isite[105]-gsh_jsite[105])*(gsh_isite[105]-gsh_jsite[105]);
-//         eng += euclideanDistance(gsh_isite, gsh_jsite, n_gsh_coef);
-//     }
+        // eng += (gsh_isite[1]-gsh_jsite[1])*(gsh_isite[1]-gsh_jsite[1]) + (gsh_isite[5]-gsh_jsite[5])*(gsh_isite[5]-gsh_jsite[5]) + (gsh_isite[105]-gsh_jsite[105])*(gsh_isite[105]-gsh_jsite[105]);
+        eng += euclideanDistance(gsh_isite, gsh_jsite, n_gsh_coef);
+    }
 
-//     return eng;
-// }
+    return eng;
+}
 
 // gsh energy from nn
 // double AppPottsGSH::site_energy(int i) {
@@ -172,42 +173,42 @@ void AppPottsGSH::input_app(char* command, int narg, char** arg) {
 // }
 
 // gsh energy from rbfs
-double AppPottsGSH::site_energy(int i) {
+// double AppPottsGSH::site_energy(int i) {
 
-    double nn_energy;
-    double eng = 0.0;
-    std::vector<double> nn_input;
+//     double nn_energy;
+//     double eng = 0.0;
+//     std::vector<double> nn_input;
 
-    double* gsh_isite = spin2gsh[spin[i]];
-    double* gsh_jsite;
+//     double* gsh_isite = spin2gsh[spin[i]];
+//     double* gsh_jsite;
 
-    int nei;
-    for (int j = 0; j < numneigh[i]; j++) {
-        nei = neighbor[i][j];
-        gsh_jsite = spin2gsh[spin[nei]];
+//     int nei;
+//     for (int j = 0; j < numneigh[i]; j++) {
+//         nei = neighbor[i][j];
+//         gsh_jsite = spin2gsh[spin[nei]];
 
-        // get rbf input
-        std::vector<double> x;
-        bool same = true;
-        for (int i = 1; i <= 9; i++) {
-            x.push_back(gsh_isite[i]);
-        }
-        for (int i = 1; i <= 9; i++) {
-            if (x[i-1] != gsh_jsite[i]) {
-                same = false;
-            }
-            x.push_back(gsh_jsite[i]);
-        }
+//         // get rbf input
+//         std::vector<double> x;
+//         bool same = true;
+//         for (int i = 1; i <= 9; i++) {
+//             x.push_back(gsh_isite[i]);
+//         }
+//         for (int i = 1; i <= 9; i++) {
+//             if (x[i-1] != gsh_jsite[i]) {
+//                 same = false;
+//             }
+//             x.push_back(gsh_jsite[i]);
+//         }
 
-        if (same) {
-            eng += 0;
-        } else {
-            eng += rbf_energy_function(rbf_positions, rbf_scales, x);
-        }
-    }
+//         if (same) {
+//             eng += 0;
+//         } else {
+//             eng += rbf_energy_function(rbf_positions, rbf_scales, x);
+//         }
+//     }
 
-    return eng;
-}
+//     return eng;
+// }
 
 /* ----------------------------------------------------------------------
    rKMC method
